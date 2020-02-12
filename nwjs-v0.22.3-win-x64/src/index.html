@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>浏览器</title>
+  <link rel="stylesheet" type="text/css" href="http://v3.bootcss.com/dist/css/bootstrap.min.css">
+  <script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+  <style type="text/css">
+    .row .btn{
+      min-width: 100px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+      <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+          <div class="page-header">
+            <h1>确认关闭浏览器？</h1>
+          </div>
+          <div class="row">
+            <div class="col-sm-6 col-xs-6">
+              <button type="button" class="btn btn-danger btn-lg" onclick="cancle()">取消</button>
+            </div>
+            <div class="col-sm-6 col-xs-6">
+              <button type="button" class="btn btn-primary btn-lg" onclick="confirm()">确认</button>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+
+<script>
+
+const rf=require("fs");             // nodejs文件模块
+const gui = require('nw.gui');      // gui对象
+
+var indexPage = nw.Window.get();   // 初始（首页）页面
+var openPage;                      // 需要打开的页面对象
+
+// 点击取消
+function cancle(){
+  openPage.focus();   //
+  indexPage.hide();
+}
+// 点击确定
+function confirm(){
+  openPage.close();  // 先关闭openPage
+  indexPage.close();
+}
+
+// 快捷键监听Ctrl+Shift+D
+// 监听只针对当前页面，在openPage页面没有监听
+function shortcut(){
+  let option = {
+    key : "Ctrl+Shift+D",
+    active : function() {
+      // 监听成功
+      indexPage.show();
+      indexPage.focus();
+    },
+    failed : function(msg) {
+      // 快捷键监听失败
+    }
+  };
+  // 创建快捷键
+  let shortcut = new nw.Shortcut(option);
+
+  // 全局监听，页面不需要focus状态。
+  nw.App.registerGlobalHotKey(shortcut);
+
+  shortcut.on('active', function() {
+    console.log("监听成功："+this.key);
+  });
+
+  shortcut.on('failed', function(msg) {
+    console.log("监听失败："+msg);
+  });
+};
+// 初始化页面
+function init(){
+  // 监听openPage关闭，设置openPage为null
+  openPage.on('close', function() {
+    this.hide();       // 隐藏win
+    this.close(true);  // 关闭win
+    openPage = null;
+  });
+
+  // 监听indexPage关闭，确认openPage先关闭，再关闭indexPage
+  indexPage.on('close', function() {
+    // 确认openPage先关闭
+    if(openPage === null){
+      // 关闭自己
+      this.close(true);
+    }else{
+      // 隐藏
+      indexPage.hide();
+    }
+  });
+  // 执行快捷键监听
+  shortcut();
+  // 设置openPage进入kiosk模式
+  openPage.enterKioskMode();
+  // 然后隐藏indexPage
+  indexPage.hide();
+}
+
+// 获取配置文件的内容
+// 然后打开url
+rf.readFile("src/config.js",'utf-8',function(err,data){
+    if(err){
+        alert('加载config.js过程中出错！');
+    }else{
+        let url = JSON.parse(data).url;
+        openPage = gui.Window.get(
+            // 打开新页面
+            window.open(url)
+        );
+        init();
+    }
+});
+</script>
+</body>
+</html>

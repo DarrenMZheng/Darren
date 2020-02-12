@@ -1,0 +1,15 @@
+/*主要配置入口页面*/
+{
+  "name": "shell",
+  "main": "src/index.html",  // index.html 可以是url https://www.baidu.com/
+  "nodejs": "false",
+  "window": {
+  	"fullscreen": false,  // 是否全屏
+  	"kiosk": false,       // kiosk 模式
+  	"resizable": true,   // 是否可以缩放
+  	"toolbar": true,      // 是否显示导航栏
+  	"icon":"code/logo.jpg",  // icon
+    "height":200,         // 高度
+    "width":400           // 宽度
+  }
+}
